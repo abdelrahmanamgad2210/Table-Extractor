@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vehicle Records — CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --navy:#1F4E79; --navy-mid:#2563a8; --navy-light:#3b82f6;
+  --sidebar-bg:#0f2744; --sidebar-w:240px;
+  --amber:#FEF3C7; --amber-text:#92400E; --amber-border:#FCD34D;
+  --green:#D1FAE5; --green-text:#065F46; --green-border:#34D399;
+  --red:#FEE2E2; --red-text:#991B1B; --red-border:#FCA5A5;
+  --blue-soft:#EFF6FF; --blue-text:#1D4ED8;
+  --surface:#F1F5F9; --card:#FFFFFF;
+  --text:#0F172A; --text2:#475569; --text3:#94A3B8;
+  --border:#E2E8F0; --border2:#CBD5E1;
+  --radius:10px; --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 16px rgba(0,0,0,.1);
+}
+
+body{font-family:'Cairo',sans-serif;background:var(--surface);color:var(--text);display:flex;min-height:100vh;font-size:14px}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;background:var(--sidebar-bg);
+  display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;
+  z-index:200;overflow-y:auto;
+}
+
+.sidebar-logo{
+  padding:1.25rem 1.1rem;border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;gap:.65rem;
+}
+
+.logo-icon{
+  width:36px;height:36px;background:var(--navy-mid);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;
+}
+
+.logo-text{font-size:.95rem;font-weight:700;color:#fff}
+.logo-sub{font-size:.67rem;color:rgba(255,255,255,.4);margin-top:1px}
+
+.nav-section{padding:.75rem .75rem .3rem}
+.nav-label{font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:.2rem .4rem;margin-bottom:.2rem}
+
+.nav-item{
+  display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;
+  border-radius:7px;color:rgba(255,255,255,.6);font-size:.82rem;font-weight:500;
+  cursor:pointer;transition:all .15s;text-decoration:none;margin-bottom:2px;
+}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:var(--navy-mid);color:#fff}
+.nav-item .nav-icon{font-size:1rem;width:18px;text-align:center;flex-shrink:0}
+.nav-item .nav-badge{
+  margin-right:auto;background:rgba(251,191,36,.2);color:#FCD34D;
+  font-size:.65rem;font-weight:700;padding:.1rem .45rem;border-radius:50px;
+}
+.nav-item .nav-badge.red{background:rgba(239,68,68,.2);color:#FCA5A5}
+
+.sidebar-footer{
+  margin-top:auto;padding:.85rem .75rem;border-top:1px solid rgba(255,255,255,.07);
+}
+.sidebar-footer a{
+  display:flex;align-items:center;gap:.55rem;padding:.5rem .65rem;
+  color:rgba(255,255,255,.5);font-size:.8rem;border-radius:7px;
+  text-decoration:none;transition:all .15s;
+}
+.sidebar-footer a:hover{color:#fff;background:rgba(255,255,255,.07)}
+
+/* ── Main ── */
+.main{margin-right:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-width:0}
+
+/* ── Topbar ── */
+.topbar{
+  background:var(--card);border-bottom:1px solid var(--border);
+  padding:0 1.75rem;height:60px;display:flex;align-items:center;
+  justify-content:space-between;gap:1rem;position:sticky;top:0;z-index:100;
+}
+
+.topbar-left{display:flex;align-items:center;gap:.75rem}
+.breadcrumb{display:flex;align-items:center;gap:.35rem;font-size:.8rem;color:var(--text2)}
+.breadcrumb span{color:var(--text3)}
+
+.topbar-right{display:flex;align-items:center;gap:.65rem}
+
+.btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.45rem 1rem;border-radius:7px;font-size:.8rem;font-weight:600;
+  cursor:pointer;border:1px solid var(--border2);background:var(--card);
+  color:var(--text);transition:all .15s;font-family:inherit;
+}
+.btn:hover{background:var(--surface)}
+.btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn-primary:hover{background:var(--navy-mid);border-color:var(--navy-mid)}
+.btn-success{background:#059669;color:#fff;border-color:#059669}
+.btn-success:hover{background:#047857}
+.btn-sm{padding:.32rem .7rem;font-size:.75rem}
+.btn-ghost{background:none;border-color:transparent;color:var(--text2)}
+.btn-ghost:hover{background:var(--surface);border-color:var(--border)}
+
+/* ── Page content ── */
+.page{padding:1.5rem 1.75rem;flex:1}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.4rem}
+.page-title{font-size:1.3rem;font-weight:800;color:var(--text)}
+.page-sub{font-size:.8rem;color:var(--text2);margin-top:.2rem}
+.page-actions{display:flex;gap:.5rem;align-items:center;flex-shrink:0}
+
+/* ── KPI cards ── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.4rem}
+
+.kpi{
+  background:var(--card);border-radius:var(--radius);padding:1.1rem 1.25rem;
+  box-shadow:var(--shadow);border:1px solid var(--border);
+  display:flex;align-items:center;gap:.9rem;
+}
+
+.kpi-icon{
+  width:44px;height:44px;border-radius:10px;display:flex;
+  align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;
+}
+
+.kpi.total   .kpi-icon{background:var(--blue-soft);color:var(--navy)}
+.kpi.flagged .kpi-icon{background:var(--amber);color:var(--amber-text)}
+.kpi.reviewed .kpi-icon{background:var(--green);color:var(--green-text)}
+.kpi.pending  .kpi-icon{background:var(--red);color:var(--red-text)}
+
+.kpi-label{font-size:.73rem;color:var(--text2);font-weight:600;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em}
+.kpi-value{font-size:1.75rem;font-weight:800;line-height:1;color:var(--text)}
+
+/* ── Toolbar ── */
+.toolbar{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:.75rem 1rem;display:flex;align-items:center;gap:.65rem;
+  margin-bottom:1rem;flex-wrap:wrap;box-shadow:var(--shadow);
+}
+
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap input{
+  width:100%;padding:.45rem .75rem .45rem 2rem;
+  border:1.5px solid var(--border2);border-radius:7px;
+  font-size:.82rem;color:var(--text);background:var(--surface);
+  outline:none;font-family:inherit;transition:border-color .15s;
+}
+.search-wrap input:focus{border-color:var(--navy-light)}
+.search-icon{position:absolute;left:.6rem;top:50%;transform:translateY(-50%);font-size:.85rem;color:var(--text3);pointer-events:none}
+
+select.filter-select{
+  border:1.5px solid var(--border2);border-radius:7px;
+  padding:.43rem .65rem;font-size:.8rem;color:var(--text);
+  background:var(--surface);outline:none;font-family:inherit;
+  cursor:pointer;transition:border-color .15s;
+}
+select.filter-select:focus{border-color:var(--navy-light)}
+
+.toolbar-divider{width:1px;height:24px;background:var(--border2);flex-shrink:0}
+
+.bulk-actions{display:none;align-items:center;gap:.5rem}
+.bulk-actions.visible{display:flex}
+.bulk-label{font-size:.78rem;font-weight:600;color:var(--text2)}
+
+/* ── Table card ── */
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.table-scroll{overflow-x:auto}
+
+table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:960px}
+
+thead th{
+  background:#F8FAFC;border-bottom:2px solid var(--border);
+  padding:.65rem .9rem;text-align:right;font-weight:700;font-size:.71rem;
+  color:var(--text2);white-space:nowrap;text-transform:uppercase;letter-spacing:.05em;
+  border-left:1px solid var(--border);
+}
+thead th:first-child{border-radius:0}
+thead th input[type=checkbox]{cursor:pointer;accent-color:var(--navy);width:14px;height:14px}
+
+tbody tr{transition:background .1s;cursor:default}
+tbody tr:hover{background:#F8FAFC}
+tbody tr.selected{background:#EFF6FF}
+tbody tr.selected td{border-color:#BFDBFE}
+
+tbody td{
+  padding:.62rem .9rem;border-bottom:1px solid var(--border);
+  vertical-align:middle;border-left:1px solid transparent;
+}
+tbody td input[type=checkbox]{cursor:pointer;accent-color:var(--navy);width:14px;height:14px}
+
+.cell-mono{font-family:'JetBrains Mono',monospace;font-size:.73rem;letter-spacing:.03em}
+.cell-muted{color:var(--text2);font-size:.76rem}
+.cell-source{font-size:.71rem;color:var(--text3);font-style:italic;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Status badges */
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .6rem;border-radius:50px;font-size:.7rem;font-weight:700;white-space:nowrap}
+.badge.clean   {background:var(--green);color:var(--green-text);border:1px solid var(--green-border)}
+.badge.flagged {background:var(--amber);color:var(--amber-text);border:1px solid var(--amber-border);animation:pulse-badge 2s infinite}
+.badge.reviewed{background:var(--blue-soft);color:var(--blue-text);border:1px solid #93C5FD}
+
+@keyframes pulse-badge{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.4)}60%{box-shadow:0 0 0 4px rgba(251,191,36,0)}}
+
+/* Flagged cell */
+td.cell-flagged{
+  background:var(--amber)!important;
+  cursor:pointer;
+  animation:pulse-cell 2.5s ease-in-out infinite;
+  position:relative;
+}
+td.cell-flagged:hover{filter:brightness(.97)}
+
+@keyframes pulse-cell{
+  0%,100%{box-shadow:inset 0 0 0 0 rgba(251,191,36,0)}
+  50%{box-shadow:inset 0 0 6px 1px rgba(234,179,8,.3)}
+}
+
+td.cell-reviewed{background:var(--green)!important;cursor:pointer}
+
+/* Totally unseen cell — entire value was invisible to Gemini */
+td.cell-unseen{
+  background:#FEE2E2!important;   /* red-100 */
+  cursor:pointer;
+  animation:pulse-unseen 2.5s ease-in-out infinite;
+}
+td.cell-unseen:hover{filter:brightness(.97)}
+@keyframes pulse-unseen{
+  0%,100%{box-shadow:inset 0 0 0 0 rgba(239,68,68,0)}
+  50%{box-shadow:inset 0 0 6px 1px rgba(239,68,68,.35)}
+}
+
+/* Unreadable character placeholder ■ within a cell value */
+span.unread-char{color:#DC2626;font-weight:700;letter-spacing:.05em}
+
+/* Row actions */
+.row-actions{display:flex;gap:.3rem;justify-content:flex-end;opacity:0;transition:opacity .15s}
+tbody tr:hover .row-actions{opacity:1}
+
+/* ── Pagination ── */
+.pagination{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.8rem 1.1rem;border-top:1px solid var(--border);
+  font-size:.78rem;color:var(--text2);
+}
+
+.page-btns{display:flex;gap:.2rem}
+.page-btn{
+  background:none;border:1.5px solid var(--border);border-radius:6px;
+  padding:.28rem .55rem;font-size:.76rem;cursor:pointer;
+  color:var(--text);transition:all .1s;font-family:inherit;
+}
+.page-btn:hover{border-color:var(--navy);color:var(--navy)}
+.page-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* ── Modal ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(15,23,42,.5);z-index:600;
+  align-items:center;justify-content:center;backdrop-filter:blur(2px);
+}
+.modal-overlay.open{display:flex}
+
+.modal{
+  background:#fff;border-radius:14px;padding:1.75rem;width:480px;
+  max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);
+  direction:ltr;animation:modal-in .2s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes modal-in{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+.modal-title{font-size:1rem;font-weight:700;color:var(--navy)}
+.modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text3);padding:.25rem;line-height:1;transition:color .15s}
+.modal-close:hover{color:var(--text)}
+
+.modal-reason{
+  font-size:.79rem;background:var(--red);border:1px solid var(--red-border);
+  border-radius:7px;padding:.5rem .75rem;margin-bottom:.9rem;color:var(--red-text);
+}
+
+.form-label{font-size:.73rem;font-weight:700;color:var(--text2);margin-bottom:.35rem;display:block;text-transform:uppercase;letter-spacing:.05em}
+.form-input{
+  width:100%;border:1.5px solid var(--border2);border-radius:7px;
+  padding:.55rem .75rem;font-family:'JetBrains Mono',monospace;
+  font-size:.88rem;color:var(--text);outline:none;transition:border-color .15s;
+  margin-bottom:1rem;
+}
+.form-input:focus{border-color:var(--navy-light)}
+
+.modal-actions{display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:wrap}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:1.5rem;right:1.5rem;
+  background:var(--text);color:#fff;
+  padding:.7rem 1.25rem;border-radius:9px;font-size:.82rem;font-weight:600;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+  transform:translateY(80px);opacity:0;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;
+  z-index:700;display:flex;align-items:center;gap:.5rem;max-width:340px;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-right:4px solid #34D399}
+.toast.error{border-right:4px solid #F87171}
+
+/* ── Empty / loading ── */
+.state-box{text-align:center;padding:4rem 2rem;color:var(--text2)}
+.state-icon{font-size:2.5rem;margin-bottom:.75rem}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Review queue page (hidden by default) ── */
+.page-section{display:none}
+.page-section.active{display:block}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🗂</div>
+    <div>
+      <div class="logo-text">VehicleCRM</div>
+      <div class="logo-sub">Table Extractor</div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Main</div>
+    <a class="nav-item active" onclick="showSection('records')" href="#">
+      <span class="nav-icon">📋</span> All Records
+    </a>
+    <a class="nav-item" onclick="showSection('flagged')" href="#">
+      <span class="nav-icon">⚠</span> Review Queue
+      <span class="nav-badge red" id="badge-flagged">0</span>
+    </a>
+    <a class="nav-item" onclick="showSection('clean')" href="#">
+      <span class="nav-icon">✅</span> Clean Records
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Actions</div>
+    <a class="nav-item" onclick="exportExcel()" href="#">
+      <span class="nav-icon">📥</span> Export Excel
+    </a>
+    <a class="nav-item" href="/" style="text-decoration:none">
+      <span class="nav-icon">←</span> Back to Extraction
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <a href="/logs" target="_blank">📄 View Logs</a>
+    <a href="/stats" target="_blank">📊 API Stats</a>
+  </div>
+</aside>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="breadcrumb">
+        <span>VehicleCRM</span> › <strong id="breadcrumb-section">All Records</strong>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-success btn-sm" onclick="exportExcel()">⬇ Export Excel</button>
+      <a class="btn btn-primary btn-sm" href="/" style="gap:.5rem">
+        ← Back to Extraction
+      </a>
+    </div>
+  </div>
+
+  <!-- Page content -->
+  <div class="page">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <div class="page-title" id="page-title">All Records</div>
+        <div class="page-sub" id="page-sub">All extracted vehicle seizure records</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="refreshData()">↻ Refresh</button>
+      </div>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="kpi-row">
+      <div class="kpi total">
+        <div class="kpi-icon">📋</div>
+        <div>
+          <div class="kpi-label">Total Records</div>
+          <div class="kpi-value" id="kpi-total">—</div>
+        </div>
+      </div>
+      <div class="kpi flagged">
+        <div class="kpi-icon">⚠</div>
+        <div>
+          <div class="kpi-label">Flagged</div>
+          <div class="kpi-value" id="kpi-flagged">—</div>
+        </div>
+      </div>
+      <div class="kpi reviewed">
+        <div class="kpi-icon">✅</div>
+        <div>
+          <div class="kpi-label">Reviewed</div>
+          <div class="kpi-value" id="kpi-reviewed">—</div>
+        </div>
+      </div>
+      <div class="kpi pending">
+        <div class="kpi-icon">🔴</div>
+        <div>
+          <div class="kpi-label">Pending Review</div>
+          <div class="kpi-value" id="kpi-pending">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search records…" oninput="applyFilters()">
+      </div>
+      <select class="filter-select" id="source-filter" onchange="applyFilters()">
+        <option value="">All Files</option>
+      </select>
+      <select class="filter-select" id="flag-filter" onchange="applyFilters()">
+        <option value="">All Status</option>
+        <option value="flagged">⚠ Flagged</option>
+        <option value="clean">✅ Clean</option>
+        <option value="reviewed">👁 Reviewed</option>
+      </select>
+      <div class="toolbar-divider"></div>
+      <div class="bulk-actions" id="bulk-actions">
+        <span class="bulk-label" id="bulk-label">0 selected</span>
+        <button class="btn btn-sm" id="btn-select-all-records" onclick="selectAllRecords()" style="display:none">Select All <span id="select-all-count"></span> Records</button>
+        <button class="btn btn-sm" onclick="bulkMarkReviewed()">✓ Mark Reviewed</button>
+        <button class="btn btn-sm" style="background:#DC2626;color:#fff;border-color:#DC2626" onclick="bulkDelete()">🗑 Delete</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearSelection()">✕ Deselect</button>
+      </div>
+      <span style="font-size:.78rem;color:var(--text2);margin-right:auto" id="row-count"></span>
+      <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear Filters</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-scroll">
+        <table>
+          <thead id="thead"></thead>
+          <tbody id="tbody">
+            <tr><td colspan="20">
+              <div class="state-box"><div class="spinner"></div>Loading records…</div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span id="pag-info"></span>
+        <div class="page-btns" id="page-btns"></div>
+      </div>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /main -->
+
+<!-- ══════════════ EDIT MODAL ══════════════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Review Field</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-reason" id="modal-reason" style="display:none"></div>
+    <label class="form-label" id="modal-label">Value</label>
+    <input class="form-input" id="modal-input" type="text">
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-sm" style="background:#059669;color:#fff;border-color:#059669" onclick="markReviewed()">✓ Reviewed (no edit)</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEdit()">💾 Save &amp; Clear Flag</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TOAST ══════════════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let ALL_ROWS      = [];
+let COLUMNS       = [];
+let FILTERED      = [];
+let SELECTED      = new Set();
+let CUR_PAGE      = 1;
+const PAGE_SIZE   = 50;
+let EDIT_CTX      = null;
+let ACTIVE_SECTION = 'records';
+
+const VALIDATED_COLS = new Set(['الملاحظات','اللوحة','تاريخ الحجز']);
+const MONO_COLS      = new Set(['الملاحظات','اللوحة','م']);
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+async function init() {
+  await Promise.all([loadStats(), loadRows()]);
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const s = await fetch('/api/stats').then(r => r.json());
+    document.getElementById('kpi-total').textContent    = s.total_rows.toLocaleString();
+    document.getElementById('kpi-flagged').textContent  = s.flagged_rows.toLocaleString();
+    document.getElementById('kpi-reviewed').textContent = s.reviewed_rows.toLocaleString();
+    document.getElementById('kpi-pending').textContent  = s.pending_rows.toLocaleString();
+    document.getElementById('badge-flagged').textContent = s.pending_rows;
+
+    const sf = document.getElementById('source-filter');
+    const prevSrc = sf.value;                          // save current selection
+    [...sf.options].slice(1).forEach(o => o.remove());
+    s.source_files.sort().forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f; opt.textContent = f; sf.appendChild(opt);
+    });
+    if (prevSrc) sf.value = prevSrc;                  // restore — stays "" if file removed
+  } catch(e) { console.error('Stats error', e); }
+}
+
+// ── Rows ──────────────────────────────────────────────────────────────────
+async function loadRows() {
+  try {
+    const data = await fetch('/api/rows').then(r => r.json());
+    ALL_ROWS = data.rows || [];
+
+    // Canonical columns always come first in this fixed order.
+    // Any extra columns discovered in the data are appended alphabetically so order
+    // is stable across page refreshes and doesn't shift existing cells.
+    const CANONICAL = ['م','اللوحة','مصدر اللوحة','فئة اللوحة','نوع المركبة','لونها','تاريخ الحجز','الملاحظات'];
+    const FIXED = new Set(['source_file', ...CANONICAL]);
+    const extraSet = new Set();
+    ALL_ROWS.forEach(r => Object.keys(r).forEach(k => {
+      if (!k.startsWith('_') && !FIXED.has(k)) extraSet.add(k);
+    }));
+    const extras = [...extraSet].sort();   // alphabetical — deterministic
+    COLUMNS = ['source_file', ...CANONICAL, ...extras];
+
+    renderHead();
+    applyFilters(false);
+  } catch(e) {
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="20"><div class="state-box"><div class="state-icon">⚠️</div><p>Upload files first to see records here.</p></div></td></tr>';
+  }
+}
+
+// ── Section switching ─────────────────────────────────────────────────────
+function showSection(name) {
+  ACTIVE_SECTION = name;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  const titles = { records:'All Records', flagged:'Review Queue', clean:'Clean Records' };
+  const subs   = { records:'All extracted vehicle seizure records', flagged:'Records with validation flags requiring human review', clean:'Records that passed all validation checks' };
+  document.getElementById('page-title').textContent = titles[name];
+  document.getElementById('page-sub').textContent   = subs[name];
+  document.getElementById('breadcrumb-section').textContent = titles[name];
+
+  const flagFilter = document.getElementById('flag-filter');
+  if (name === 'flagged') flagFilter.value = 'flagged';
+  else if (name === 'clean') flagFilter.value = 'clean';
+  else flagFilter.value = '';
+
+  applyFilters();
+}
+
+// ── Filter ────────────────────────────────────────────────────────────────
+function applyFilters(resetPage = true) {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const srcF   = document.getElementById('source-filter').value;
+  const flagF  = document.getElementById('flag-filter').value;
+
+  FILTERED = ALL_ROWS.filter(row => {
+    if (search) {
+      const hit = Object.entries(row).some(([k,v])=>!k.startsWith('_')&&String(v).toLowerCase().includes(search));
+      if (!hit) return false;
+    }
+    if (srcF && row.source_file !== srcF) return false;
+    const flags = row._flags || {};
+    const fc = Object.keys(flags).length;
+    if (flagF === 'flagged'  && fc === 0) return false;
+    if (flagF === 'clean'    && fc  >  0) return false;
+    if (flagF === 'reviewed' && !row._all_reviewed) return false;
+    return true;
+  });
+
+  if (resetPage) CUR_PAGE = 1;
+  SELECTED.clear();
+  updateBulkBar();
+  document.getElementById('row-count').textContent = `${FILTERED.length.toLocaleString()} records`;
+  renderPage();
+}
+
+function clearFilters() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('source-filter').value = '';
+  document.getElementById('flag-filter').value = '';
+  ACTIVE_SECTION = 'records';
+  document.querySelectorAll('.nav-item').forEach((el,i)=>el.classList.toggle('active', i===0));
+  document.getElementById('page-title').textContent = 'All Records';
+  document.getElementById('page-sub').textContent = 'All extracted vehicle seizure records';
+  document.getElementById('breadcrumb-section').textContent = 'All Records';
+  applyFilters();
+}
+
+async function refreshData() {
+  await Promise.all([loadStats(), loadRows()]);
+  showToast('↻ Data refreshed', 'success');
+}
+
+// ── Render head ───────────────────────────────────────────────────────────
+function renderHead() {
+  const tr = document.createElement('tr');
+  // Checkbox col
+  const thCb = document.createElement('th');
+  thCb.style.width = '40px';
+  thCb.innerHTML = '<input type="checkbox" id="select-all" onchange="toggleSelectAll(this.checked)">';
+  tr.appendChild(thCb);
+
+  COLUMNS.forEach(col => {
+    const th = document.createElement('th');
+    th.textContent = col;
+    tr.appendChild(th);
+  });
+
+  const thStatus = document.createElement('th');
+  thStatus.textContent = 'Status';
+  thStatus.style.width = '120px';
+  tr.appendChild(thStatus);
+
+  const thActions = document.createElement('th');
+  thActions.textContent = 'Actions';
+  thActions.style.width = '80px';
+  tr.appendChild(thActions);
+
+  const thead = document.getElementById('thead');
+  thead.innerHTML = '';
+  thead.appendChild(tr);
+}
+
+// ── Render page ───────────────────────────────────────────────────────────
+function renderPage() {
+  const start    = (CUR_PAGE - 1) * PAGE_SIZE;
+  const pageRows = FILTERED.slice(start, start + PAGE_SIZE);
+  const tbody    = document.getElementById('tbody');
+
+  if (pageRows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="20"><div class="state-box"><div class="state-icon">✅</div><p>No records match the current filter.</p></div></td></tr>';
+    renderPag();
+    return;
+  }
+
+  tbody.innerHTML = '';
+  pageRows.forEach(row => {
+    const tr    = document.createElement('tr');
+    const flags = row._flags || {};
+    const fc    = Object.keys(flags).length;
+    if (SELECTED.has(row._id)) tr.classList.add('selected');
+
+    // Checkbox
+    const tdCb = document.createElement('td');
+    tdCb.style.width = '40px';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.checked = SELECTED.has(row._id);
+    cb.onchange = () => toggleRow(row._id, cb.checked);
+    tdCb.appendChild(cb);
+    tr.appendChild(tdCb);
+
+    // Data cells
+    COLUMNS.forEach(col => {
+      const td = document.createElement('td');
+      const val = row[col] ?? '';
+      const flag = flags[col];
+
+      // Render cell content — highlight ■ chars in red when present
+      if (val.includes('■')) {
+        td.innerHTML = val.split('■').map((part, i) =>
+          i === 0 ? part : '<span class="unread-char" title="Unreadable character">■</span>' + part
+        ).join('');
+      } else {
+        td.textContent = val;
+      }
+
+      if (col === 'source_file') td.classList.add('cell-source');
+      if (MONO_COLS.has(col)) td.classList.add('cell-mono');
+
+      if (flag === 'UNSEEN') {
+        td.classList.add('cell-unseen');
+        td.title = '🔴 Totally unseen — Click to enter value';
+        td.onclick = () => openModal(row._id, col, flag, val);
+      } else if (flag) {
+        td.classList.add('cell-flagged');
+        td.title = `⚠ ${flag} — Click to review`;
+        td.onclick = () => openModal(row._id, col, flag, val);
+      } else if (VALIDATED_COLS.has(col) && row._all_reviewed) {
+        td.classList.add('cell-reviewed');
+        td.title = '✓ Reviewed';
+      }
+      tr.appendChild(td);
+    });
+
+    // Status badge
+    const tdStatus = document.createElement('td');
+    if (fc === 0) {
+      tdStatus.innerHTML = '<span class="badge clean">✅ Clean</span>';
+    } else if (row._all_reviewed) {
+      tdStatus.innerHTML = '<span class="badge reviewed">👁 Reviewed</span>';
+    } else {
+      tdStatus.innerHTML = `<span class="badge flagged">⚠ ${fc} flag${fc>1?'s':''}</span>`;
+    }
+    tr.appendChild(tdStatus);
+
+    // Row actions
+    const tdAct = document.createElement('td');
+    tdAct.innerHTML = `
+      <div class="row-actions">
+        <button class="btn btn-ghost btn-sm" title="Review first flag"
+          onclick='openFirstFlag(${JSON.stringify(row._id)})'>✏</button>
+        <button class="btn btn-ghost btn-sm" title="Delete row"
+          style="color:#DC2626"
+          onclick='deleteSingleRow(${JSON.stringify(row._id)})'>🗑</button>
+      </div>`;
+    tr.appendChild(tdAct);
+
+    tbody.appendChild(tr);
+  });
+
+  // Sync select-all checkbox
+  const selAll = document.getElementById('select-all');
+  if (selAll) selAll.checked = pageRows.length > 0 && pageRows.every(r => SELECTED.has(r._id));
+
+  renderPag();
+}
+
+// ── Selection ─────────────────────────────────────────────────────────────
+function toggleRow(id, checked) {
+  if (checked) SELECTED.add(id); else SELECTED.delete(id);
+  updateBulkBar();
+  const tr = [...document.querySelectorAll('tbody tr')].find(tr => {
+    const cb = tr.querySelector('input[type=checkbox]');
+    return cb && parseInt(cb.dataset.id) === id;
+  });
+}
+
+function toggleSelectAll(checked) {
+  const start    = (CUR_PAGE - 1) * PAGE_SIZE;
+  const pageRows = FILTERED.slice(start, start + PAGE_SIZE);
+  pageRows.forEach(r => { if (checked) SELECTED.add(r._id); else SELECTED.delete(r._id); });
+  updateBulkBar();
+  renderPage();
+}
+
+function clearSelection() {
+  SELECTED.clear();
+  updateBulkBar();
+  renderPage();
+}
+
+function selectAllRecords() {
+  FILTERED.forEach(r => SELECTED.add(r._id));
+  updateBulkBar();
+  renderPage();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-actions');
+  if (SELECTED.size > 0) {
+    bar.classList.add('visible');
+    document.getElementById('bulk-label').textContent = `${SELECTED.size} selected`;
+    // Show "Select all N records" only when not everything is already selected
+    const btn = document.getElementById('btn-select-all-records');
+    if (FILTERED.length > SELECTED.size) {
+      document.getElementById('select-all-count').textContent = FILTERED.length;
+      btn.style.display = '';
+    } else {
+      btn.style.display = 'none';
+    }
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+async function bulkMarkReviewed() {
+  if (SELECTED.size === 0) return;
+  const ids = [...SELECTED];
+  showToast(`Marking ${ids.length} records reviewed…`, 'success');
+  const rows = ALL_ROWS.filter(r => ids.includes(r._id) && r._flags);
+  for (const row of rows) {
+    for (const field of Object.keys(row._flags || {})) {
+      try {
+        await fetch(`/api/rows/${row._id}`, {
+          method:'PATCH', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ field, reviewed: true })
+        });
+        delete row._flags[field];
+      } catch(e) {}
+    }
+    row._all_reviewed = true;
+  }
+  SELECTED.clear();
+  updateBulkBar();
+  applyFilters(false);
+  loadStats();
+  showToast(`✅ ${ids.length} records marked reviewed`, 'success');
+}
+
+// ── Open first unflagged field ────────────────────────────────────────────
+function openFirstFlag(rowId) {
+  const row = ALL_ROWS.find(r => r._id === rowId);
+  if (!row) return;
+  const flags = row._flags || {};
+  const firstField = Object.keys(flags)[0];
+  if (firstField) openModal(rowId, firstField, flags[firstField], row[firstField]);
+  else showToast('No flags on this record', 'success');
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────
+function openModal(rowId, field, reason, currentValue) {
+  EDIT_CTX = { rowId, field, reason };
+  document.getElementById('modal-title').textContent   = `Review: ${field}`;
+  const reasonEl = document.getElementById('modal-reason');
+  if (reason) { reasonEl.textContent = `⚠ ${reason}`; reasonEl.style.display = 'block'; }
+  else reasonEl.style.display = 'none';
+  document.getElementById('modal-label').textContent   = `Corrected value for "${field}"`;
+  document.getElementById('modal-input').value         = currentValue ?? '';
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('modal-input').focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  EDIT_CTX = null;
+}
+
+async function saveEdit() {
+  if (!EDIT_CTX) return;
+  const { rowId, field } = EDIT_CTX;
+  const val = document.getElementById('modal-input').value.trim();
+  try {
+    const r = await fetch(`/api/rows/${rowId}`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ field, value: val, reviewed: true })
+    });
+    if (!r.ok) throw new Error();
+    const row = ALL_ROWS.find(r => r._id === rowId);
+    if (row) { row[field] = val; (row._flags||{}); delete row._flags[field]; }
+    showToast(`✅ "${field}" saved and flag cleared`, 'success');
+    closeModal(); applyFilters(false); loadStats();
+  } catch { showToast('❌ Save failed — check server', 'error'); }
+}
+
+async function markReviewed() {
+  if (!EDIT_CTX) return;
+  const { rowId, field } = EDIT_CTX;
+  try {
+    await fetch(`/api/rows/${rowId}`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ field, reviewed: true })
+    });
+    const row = ALL_ROWS.find(r => r._id === rowId);
+    if (row && row._flags) delete row._flags[field];
+    showToast('👁 Marked as reviewed', 'success');
+    closeModal(); applyFilters(false); loadStats();
+  } catch { showToast('❌ Failed — check server', 'error'); }
+}
+
+// ── Delete ────────────────────────────────────────────────────────────────
+async function deleteSingleRow(rowId) {
+  if (!confirm('Delete this record? This cannot be undone.')) return;
+  try {
+    const r = await fetch(`/api/rows/${rowId}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error();
+    ALL_ROWS = ALL_ROWS.filter(r => r._id !== rowId);
+    SELECTED.delete(rowId);
+    updateBulkBar();
+    applyFilters(false);
+    loadStats();
+    showToast('🗑 Record deleted', 'success');
+  } catch { showToast('❌ Delete failed', 'error'); }
+}
+
+async function bulkDelete() {
+  if (SELECTED.size === 0) return;
+  if (!confirm(`Delete ${SELECTED.size} selected record(s)? This cannot be undone.`)) return;
+  const ids = [...SELECTED];
+  try {
+    const r = await fetch('/api/rows/bulk-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    if (!r.ok) throw new Error();
+    ALL_ROWS = ALL_ROWS.filter(r => !ids.includes(r._id));
+    SELECTED.clear();
+    updateBulkBar();
+    applyFilters(false);
+    loadStats();
+    showToast(`🗑 ${ids.length} record(s) deleted`, 'success');
+  } catch { showToast('❌ Bulk delete failed', 'error'); }
+}
+
+// ── Export ────────────────────────────────────────────────────────────────
+function exportExcel() {
+  showToast('⬇ Generating Excel…', 'success');
+  window.location.href = '/api/export/excel';
+}
+
+// ── Pagination ────────────────────────────────────────────────────────────
+function renderPag() {
+  const total = FILTERED.length;
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const start = (CUR_PAGE - 1) * PAGE_SIZE + 1;
+  const end   = Math.min(CUR_PAGE * PAGE_SIZE, total);
+
+  document.getElementById('pag-info').textContent =
+    total > 0 ? `Showing ${start.toLocaleString()}–${end.toLocaleString()} of ${total.toLocaleString()}` : '';
+
+  const container = document.getElementById('page-btns');
+  container.innerHTML = '';
+  if (pages <= 1) return;
+
+  const mkBtn = (label, page, active=false) => {
+    const btn = document.createElement('button');
+    btn.className = 'page-btn' + (active ? ' active' : '');
+    btn.textContent = label;
+    btn.onclick = () => { CUR_PAGE = page; renderPage(); window.scrollTo(0,0); };
+    return btn;
+  };
+
+  if (CUR_PAGE > 1) container.appendChild(mkBtn('‹', CUR_PAGE - 1));
+  range(CUR_PAGE, pages).forEach(p => {
+    if (p === '…') {
+      const s = document.createElement('span'); s.textContent='…'; s.style.padding='0 .25rem';
+      container.appendChild(s);
+    } else container.appendChild(mkBtn(p, p, p === CUR_PAGE));
+  });
+  if (CUR_PAGE < pages) container.appendChild(mkBtn('›', CUR_PAGE + 1));
+}
+
+function range(cur, total) {
+  if (total <= 7) return Array.from({length:total},(_,i)=>i+1);
+  if (cur <= 4)   return [1,2,3,4,5,'…',total];
+  if (cur >= total-3) return [1,'…',total-4,total-3,total-2,total-1,total];
+  return [1,'…',cur-1,cur,cur+1,'…',total];
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = `toast ${type}`, 3200);
+}
+
+// ── Events ────────────────────────────────────────────────────────────────
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && EDIT_CTX &&
+      document.activeElement === document.getElementById('modal-input')) saveEdit();
+});
+
+// Auto-refresh every 30 s
+setInterval(() => { loadStats(); loadRows(); }, 30000);
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+data/
+cache/
+skills/
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.xlsx
+server.log
+test_*.py
+test_run.py

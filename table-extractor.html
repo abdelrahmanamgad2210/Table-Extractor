@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Table Extractor Pro — AI Document Parser</title>
+  <!-- Modern Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  
+  <!-- SheetJS CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    /* ── Theme & Variable Tokens ── */
+    :root {
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-hover: #f1f5f9;
+      --bg-card-header: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-color-hover: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-inverse: #ffffff;
+      
+      --color-primary: #4f46e5;
+      --color-primary-hover: #4338ca;
+      --color-primary-glow: rgba(79, 70, 229, 0.08);
+      
+      --color-success: #10b981;
+      --color-success-hover: #059669;
+      --color-success-glow: rgba(16, 185, 129, 0.08);
+      
+      --color-danger: #ef4444;
+      --color-danger-hover: #dc2626;
+      --color-danger-glow: rgba(239, 68, 68, 0.08);
+      
+      --color-warning: #f59e0b;
+      
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+      --shadow-glow: 0 0 20px 0 rgba(79, 70, 229, 0.12);
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-display: 'Outfit', sans-serif;
+      --font-mono: 'Fira Code', ui-monospace, monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --transition-fast: 0.15s ease;
+    }
+    
+    [data-theme="dark"] {
+      --bg-base: #09090b;
+      --bg-surface: #18181b;
+      --bg-surface-hover: #27272a;
+      --bg-card-header: #202023;
+      --border-color: #27272a;
+      --border-color-hover: #3f3f46;
+      --text-main: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --text-inverse: #09090b;
+      
+      --color-primary: #6366f1;
+      --color-primary-hover: #4f46e5;
+      --color-primary-glow: rgba(99, 102, 241, 0.15);
+      
+      --color-success: #10b981;
+      --color-success-hover: #059669;
+      --color-success-glow: rgba(16, 185, 129, 0.15);
+      
+      --color-danger: #ef4444;
+      --color-danger-hover: #dc2626;
+      --color-danger-glow: rgba(239, 68, 68, 0.15);
+      
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+      --shadow-glow: 0 0 25px 0 rgba(99, 102, 241, 0.18);
+    }
+
+    /* ── Reset & Base Styles ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    /* ── Header Navbar ── */
+    .navbar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+    .brand-logo {
+      background: var(--color-primary-glow);
+      color: var(--color-primary);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-title span {
+      color: var(--color-primary);
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .nav-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      padding: 0.5rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: var(--transition-fast);
+    }
+    .nav-btn:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-color-hover);
+    }
+    .api-status {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.65rem;
+      background: var(--bg-surface-hover);
+      border: 1px solid var(--border-color);
+      border-radius: 50px;
+      font-weight: 500;
+    }
+    .api-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--color-danger);
+    }
+    .api-status-dot.configured {
+      background: var(--color-success);
+      box-shadow: 0 0 8px var(--color-success);
+    }
+
+    /* ── Main Layout Workspace ── */
+    .workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem;
+      gap: 1.5rem;
+    }
+    
+    /* ── Upload Area (Landing) ── */
+    .upload-hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 800px;
+      width: 100%;
+      margin: 3rem auto;
+    }
+    .hero-text {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .hero-text h1 {
+      font-family: var(--font-display);
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .hero-text p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+    .dropzone {
+      background: var(--bg-surface);
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      padding: 4rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+    }
+    .dropzone::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-lg);
+      background: var(--color-primary-glow);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+    .dropzone:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-glow), var(--shadow-md);
+    }
+    .dropzone.over {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-glow), var(--shadow-lg);
+    }
+    .dropzone.over::before {
+      opacity: 1;
+    }
+    .dropzone-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .dropzone-icon {
+      font-size: 3.5rem;
+      color: var(--color-primary);
+      background: var(--color-primary-glow);
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+    }
+    .dropzone p.main {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .dropzone p.sub {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── Split Panel Workspace ── */
+    .editor-layout {
+      display: none; /* Shown dynamically */
+      grid-template-columns: 1fr 1.2fr;
+      gap: 1.5rem;
+      flex: 1;
+      min-height: calc(100vh - 120px);
+    }
+    @media (max-width: 1024px) {
+      .editor-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── Card Styling ── */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 1rem 1.25rem;
+      background: var(--bg-card-header);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card-title i {
+      color: var(--color-primary);
+    }
+    .card-body {
+      padding: 1.25rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
+      position: relative;
+    }
+
+    /* ── Source Viewer Panel ── */
+    .source-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .preview-container {
+      background: var(--bg-base);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      min-height: 400px;
+    }
+    .preview-img {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      box-shadow: var(--shadow-md);
+    }
+    .preview-pdf {
+      width: 100%;
+      height: 70vh;
+      border: none;
+    }
+
+    /* ── Configure & Extract Block ── */
+    .config-card {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .form-control {
+      padding: 0.65rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-base);
+      font-size: 0.9rem;
+      outline: none;
+      transition: var(--transition-fast);
+    }
+    .form-control:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px var(--color-primary-glow);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.6rem 1.1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      transition: all var(--transition-fast);
+    }
+    .btn:hover:not(:disabled) {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-color-hover);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: var(--color-primary);
+      color: var(--text-inverse);
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--color-primary-hover);
+      border-color: var(--color-primary-hover);
+      box-shadow: var(--shadow-md);
+    }
+    .btn-success {
+      background: var(--color-success);
+      color: #fff;
+      border-color: var(--color-success);
+    }
+    .btn-success:hover:not(:disabled) {
+      background: var(--color-success-hover);
+      border-color: var(--color-success-hover);
+    }
+    .btn-danger {
+      background: var(--color-danger);
+      color: #fff;
+      border-color: var(--color-danger);
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: var(--color-danger-hover);
+      border-color: var(--color-danger-hover);
+    }
+    .btn-sm {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.75rem;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ── Progress / Spinner ── */
+    .loading-pane {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+    .spinner-ring {
+      width: 48px;
+      height: 48px;
+      border: 3.5px solid var(--border-color);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    .loading-status {
+      font-weight: 500;
+      font-size: 1.1rem;
+    }
+    .loading-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      background: var(--bg-base);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      max-width: 360px;
+      width: 100%;
+      text-align: left;
+    }
+    .loading-step-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .loading-step-item i {
+      font-size: 0.9rem;
+    }
+    .loading-step-item.success i {
+      color: var(--color-success);
+    }
+    .loading-step-item.active i {
+      color: var(--color-primary);
+      animation: pulse 1.5s infinite;
+    }
+
+    /* ── Interactive Results Panel ── */
+    .results-pane {
+      display: none; /* Shown dynamically */
+      flex-direction: column;
+      gap: 1rem;
+      height: 100%;
+    }
+    .tabs-bar {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 0.45rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 500;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      transition: var(--transition-fast);
+      white-space: nowrap;
+    }
+    .tab:hover {
+      color: var(--text-main);
+      background: var(--bg-surface-hover);
+    }
+    .tab.active {
+      background: var(--color-primary-glow);
+      border-color: rgba(99, 102, 241, 0.2);
+      color: var(--color-primary);
+    }
+    .tbl-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+    .tbl-tools-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .tbl-tools-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    /* ── Grid Table Styling ── */
+    .grid-container {
+      flex: 1;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: auto;
+      max-height: 550px;
+      position: relative;
+      background: var(--bg-base);
+    }
+    table.data-grid {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.825rem;
+      text-align: left;
+    }
+    table.data-grid thead th {
+      background: var(--bg-card-header);
+      border-bottom: 2px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      padding: 0.65rem 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      white-space: nowrap;
+    }
+    .th-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .del-col-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+    }
+    table.data-grid thead th:hover .del-col-btn {
+      opacity: 1;
+    }
+    .del-col-btn:hover {
+      color: var(--color-danger);
+    }
+    table.data-grid tbody td {
+      border-bottom: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      padding: 0.5rem 0.85rem;
+      white-space: nowrap;
+      min-width: 80px;
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: background var(--transition-fast);
+      direction: inherit; /* RTL or LTR dynamically */
+    }
+    table.data-grid tbody tr {
+      background: var(--bg-surface);
+    }
+    table.data-grid tbody tr:hover {
+      background: var(--bg-surface-hover);
+    }
+    
+    /* Content editable highlight */
+    table.data-grid tbody td[contenteditable="true"]:focus {
+      background: var(--color-primary-glow);
+      outline: 2px solid var(--color-primary);
+      outline-offset: -2px;
+      border-radius: 2px;
+    }
+    table.data-grid tbody td.empty-cell {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    
+    /* Row Actions Column */
+    .row-action-cell {
+      width: 40px;
+      text-align: center !important;
+      padding: 0.25rem !important;
+    }
+    .del-row-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      opacity: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    table.data-grid tbody tr:hover .del-row-btn {
+      opacity: 1;
+    }
+    .del-row-btn:hover {
+      color: var(--color-danger);
+      background: var(--color-danger-glow);
+    }
+
+    /* ── Settings Panel Modal ── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      max-width: 500px;
+      width: 100%;
+      margin: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-header {
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card-header);
+    }
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .modal-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      background: var(--bg-card-header);
+    }
+    .api-key-group {
+      border: 1px solid var(--border-color);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      background: var(--bg-base);
+    }
+    .api-key-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Error Bar ── */
+    .error-bar {
+      display: none;
+      background: var(--color-danger-glow);
+      border: 1px solid var(--color-danger);
+      color: var(--color-danger);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .error-bar i {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── Search inputs ── */
+    .search-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-input-wrapper i {
+      position: absolute;
+      left: 0.75rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .search-input-wrapper input {
+      padding-left: 2.25rem;
+      width: 220px;
+    }
+
+    /* ── Animations ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    @keyframes scaleUp {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <a href="#" class="brand">
+      <div class="brand-logo"><i class="ti ti-table-shortcut"></i></div>
+      <div class="brand-title">TableExtractor<span>Pro</span></div>
+    </a>
+    <div class="nav-actions">
+      <div class="api-status" id="api-status">
+        <span class="api-status-dot" id="api-status-dot"></span>
+        <span id="api-status-text">Keys Required</span>
+      </div>
+      <button class="nav-btn" id="open-settings-btn" title="API Configuration">
+        <i class="ti ti-settings"></i>
+      </button>
+      <button class="nav-btn" id="theme-toggle" title="Toggle Dark/Light Mode">
+        <i class="ti ti-sun" id="theme-icon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="workspace">
+
+    <!-- Error Bar -->
+    <div class="error-bar" id="error-bar">
+      <i class="ti ti-alert-triangle"></i>
+      <span id="error-msg"></span>
+    </div>
+
+    <!-- Upload Landing Zone -->
+    <div class="upload-hero" id="upload-hero">
+      <div class="hero-text">
+        <h1>Extract Tables with AI Precision</h1>
+        <p>Upload a cropped screenshot, full image, or PDF. Verify side-by-side and edit inline before exporting to clean Excel files.</p>
+      </div>
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-content">
+          <div class="dropzone-icon"><i class="ti ti-cloud-upload"></i></div>
+          <p class="main">Drag & drop your document here</p>
+          <p class="sub">PNG, JPG, WEBP, or PDF files. Maximum size: 20MB</p>
+          <button class="btn btn-primary" style="margin-top: 0.5rem;">Browse Files</button>
+        </div>
+      </div>
+      <input type="file" id="file-input" accept="image/*,.pdf" style="display:none">
+    </div>
+
+    <!-- Editor Workspace (Side-by-Side) -->
+    <div class="editor-layout" id="editor-layout">
+      
+      <!-- Left Panel: Source Document Preview -->
+      <section class="card" id="source-card">
+        <div class="card-header">
+          <div class="card-title"><i class="ti ti-file-text"></i> Source Document</div>
+          <div class="source-actions">
+            <button class="btn btn-sm btn-danger" id="change-file-btn">
+              <i class="ti ti-replace"></i> Change File
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="preview-container" id="preview-container">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Config / Loading / Interactive Table Grid -->
+      <section class="card" id="output-card">
+        <div class="card-header">
+          <div class="card-title"><i class="ti ti-table"></i> Extraction Dashboard</div>
+          <span class="api-status" id="metadata-badge" style="display: none;">Ready</span>
+        </div>
+        <div class="card-body">
+
+          <!-- State A: Configuration Selection -->
+          <div id="config-pane">
+            <div class="config-card">
+              <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 0.5rem;">Configure Parser</h3>
+              
+              <div class="form-group">
+                <label for="provider-select">AI Provider</label>
+                <select class="form-control" id="provider-select">
+                  <option value="gemini" selected>Google Gemini (Fast, Natively Handles PDFs & Arabic)</option>
+                  <option value="anthropic">Anthropic Claude (Premium Accuracy)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="model-select">Model Selection</label>
+                <select class="form-control" id="model-select">
+                  <!-- Loaded dynamically based on provider -->
+                </select>
+              </div>
+
+              <div class="form-group" style="margin-top: 0.5rem;">
+                <button class="btn btn-primary" id="start-extract-btn" style="width: 100%; padding: 0.85rem;">
+                  <i class="ti ti-sparkles"></i> Extract Tabular Data
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- State B: Progress / Loader -->
+          <div class="loading-pane" id="loading-pane">
+            <div class="spinner-ring"></div>
+            <div class="loading-status" id="loading-status">Analyzing layout...</div>
+            <div class="loading-steps" id="loading-steps">
+              <!-- Steps appended here -->
+            </div>
+          </div>
+
+          <!-- State C: Results Interactive Table Grid -->
+          <div class="results-pane" id="results-pane">
+            <!-- Multi-sheet tabs -->
+            <div class="tabs-bar" id="tabs-bar"></div>
+            
+            <!-- Toolbar controls -->
+            <div class="tbl-toolbar">
+              <div class="tbl-tools-left">
+                <button class="btn btn-sm" id="add-row-btn" title="Insert row at bottom"><i class="ti ti-row-insert"></i> + Row</button>
+                <button class="btn btn-sm" id="add-col-btn" title="Add new column header"><i class="ti ti-column-insert"></i> + Column</button>
+                <button class="btn btn-sm btn-danger" id="merge-tables-btn" style="display: none;" title="Merge side-by-side tables and sort chronologically by index"><i class="ti ti-binary-tree"></i> Merge Sheets</button>
+              </div>
+              <div class="tbl-tools-right">
+                <div class="search-input-wrapper">
+                  <i class="ti ti-search"></i>
+                  <input type="text" class="form-control form-control-sm" id="search-grid" placeholder="Search table...">
+                </div>
+                <button class="btn btn-sm btn-success" id="download-excel-btn"><i class="ti ti-file-excel"></i> Export to Excel</button>
+              </div>
+            </div>
+
+            <!-- Scrollable Grid Table -->
+            <div class="grid-container">
+              <table class="data-grid" id="data-grid">
+                <!-- Rendered dynamically -->
+              </table>
+            </div>
+
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; text-align: left;">
+              <i class="ti ti-info-circle"></i> <strong>Tip:</strong> Double-click any cell to edit contents directly. Changes are automatically updated in memory before Excel export.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Settings Dialog (Modal) -->
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">API Keys Configuration</h2>
+        <button class="nav-btn btn-sm" id="close-settings-btn"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+          To extract text directly from the browser, provide your API keys. They are stored locally on your device and are never sent to external servers other than Anthropic and Google.
+        </p>
+
+        <!-- Gemini API Key -->
+        <div class="api-key-group">
+          <div class="api-key-header">
+            <img src="https://www.gstatic.com/lamda/images/favicon_v1_150160d18f5cceec0e72d.svg" width="16" alt="Gemini">
+            <span>Google Gemini API</span>
+          </div>
+          <div class="form-group">
+            <input type="password" class="form-control" id="gemini-key-input" placeholder="AIzaSy..." autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Anthropic API Key -->
+        <div class="api-key-group">
+          <div class="api-key-header">
+            <svg viewBox="0 0 24 24" width="16" fill="currentColor"><path d="M12 2L2 22h20L12 2zm0 4l6.5 13H5.5L12 6z"/></svg>
+            <span>Anthropic Claude API</span>
+          </div>
+          <div class="form-group">
+            <input type="password" class="form-control" id="anthropic-key-input" placeholder="sk-ant-..." autocomplete="off">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="cancel-settings-btn">Cancel</button>
+        <button class="btn btn-primary" id="save-settings-btn">Save API Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Application State ──────────────────────────────────────────────────
+    const state = {
+      file: null,
+      fileType: null, // 'image' | 'pdf'
+      mime: null,
+      b64: null,
+      blobUrl: null,
+      activeTab: 0,
+      tables: null, // Array of { title, headers, rows }
+      theme: localStorage.getItem('te_theme') || 'dark'
+    };
+
+    const CONFIG = {
+      providers: {
+        gemini: {
+          defaultModel: 'gemini-2.5-flash',
+          models: [
+            { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Recommended — Fast OCR)' },
+            { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Highest Accuracy)' },
+            { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Stable)' }
+          ]
+        },
+        anthropic: {
+          defaultModel: 'claude-3-5-sonnet-20241022',
+          models: [
+            { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet (Recommended)' },
+            { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku (Fast for text)' }
+          ]
+        }
+      }
+    };
+
+    // ── DOM References ─────────────────────────────────────────────────────
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const uploadHero = document.getElementById('upload-hero');
+    const editorLayout = document.getElementById('editor-layout');
+    const previewContainer = document.getElementById('preview-container');
+    const configPane = document.getElementById('config-pane');
+    const loadingPane = document.getElementById('loading-pane');
+    const resultsPane = document.getElementById('results-pane');
+    
+    const providerSelect = document.getElementById('provider-select');
+    const modelSelect = document.getElementById('model-select');
+    const startExtractBtn = document.getElementById('start-extract-btn');
+    const changeFileBtn = document.getElementById('change-file-btn');
+    
+    const settingsModal = document.getElementById('settings-modal');
+    const openSettingsBtn = document.getElementById('open-settings-btn');
+    const closeSettingsBtn = document.getElementById('close-settings-btn');
+    const saveSettingsBtn = document.getElementById('save-settings-btn');
+    const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+    const geminiKeyInput = document.getElementById('gemini-key-input');
+    const anthropicKeyInput = document.getElementById('anthropic-key-input');
+    const apiStatusDot = document.getElementById('api-status-dot');
+    const apiStatusText = document.getElementById('api-status-text');
+    
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    
+    const tabsBar = document.getElementById('tabs-bar');
+    const dataGrid = document.getElementById('data-grid');
+    const addRowBtn = document.getElementById('add-row-btn');
+    const addColBtn = document.getElementById('add-col-btn');
+    const mergeTablesBtn = document.getElementById('merge-tables-btn');
+    const downloadExcelBtn = document.getElementById('download-excel-btn');
+    const searchGrid = document.getElementById('search-grid');
+    const metadataBadge = document.getElementById('metadata-badge');
+    const loadingStatus = document.getElementById('loading-status');
+    const loadingSteps = document.getElementById('loading-steps');
+    
+    const errorBar = document.getElementById('error-bar');
+    const errorMsg = document.getElementById('error-msg');
+
+    // ── Theme Switcher ─────────────────────────────────────────────────────
+    function initTheme() {
+      document.documentElement.setAttribute('data-theme', state.theme);
+      updateThemeIcon();
+    }
+    function updateThemeIcon() {
+      if (state.theme === 'dark') {
+        themeIcon.className = 'ti ti-sun';
+      } else {
+        themeIcon.className = 'ti ti-moon';
+      }
+    }
+    themeToggle.addEventListener('click', () => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('te_theme', state.theme);
+      document.documentElement.setAttribute('data-theme', state.theme);
+      updateThemeIcon();
+    });
+
+    // ── API Key Management ─────────────────────────────────────────────────
+    function loadApiKeys() {
+      geminiKeyInput.value = localStorage.getItem('te_gemini_key') || '';
+      anthropicKeyInput.value = localStorage.getItem('te_anthropic_key') || '';
+      updateApiBadge();
+    }
+    function updateApiBadge() {
+      const gKey = localStorage.getItem('te_gemini_key');
+      const aKey = localStorage.getItem('te_anthropic_key');
+      if (gKey && aKey) {
+        apiStatusDot.className = 'api-status-dot configured';
+        apiStatusText.textContent = 'API Ready (Both)';
+      } else if (gKey) {
+        apiStatusDot.className = 'api-status-dot configured';
+        apiStatusText.textContent = 'API Ready (Gemini)';
+      } else if (aKey) {
+        apiStatusDot.className = 'api-status-dot configured';
+        apiStatusText.textContent = 'API Ready (Claude)';
+      } else {
+        apiStatusDot.className = 'api-status-dot';
+        apiStatusText.textContent = 'Keys Required';
+      }
+    }
+    
+    // Modal controls
+    openSettingsBtn.addEventListener('click', () => {
+      loadApiKeys();
+      settingsModal.style.display = 'flex';
+    });
+    const closeModal = () => settingsModal.style.display = 'none';
+    closeSettingsBtn.addEventListener('click', closeModal);
+    cancelSettingsBtn.addEventListener('click', closeModal);
+    saveSettingsBtn.addEventListener('click', () => {
+      localStorage.setItem('te_gemini_key', geminiKeyInput.value.trim());
+      localStorage.setItem('te_anthropic_key', anthropicKeyInput.value.trim());
+      updateApiBadge();
+      closeModal();
+      hideError();
+    });
+
+    // ── Setup Provider Models ──────────────────────────────────────────────
+    function updateModelDropdown() {
+      const provider = providerSelect.value;
+      const data = CONFIG.providers[provider];
+      modelSelect.innerHTML = '';
+      data.models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.id;
+        option.textContent = model.name;
+        if (model.id === data.defaultModel) option.selected = true;
+        modelSelect.appendChild(option);
+      });
+    }
+    providerSelect.addEventListener('change', updateModelDropdown);
+
+    // ── Drag & Drop Event Listeners ────────────────────────────────────────
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('over');
+      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+    dropzone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => {
+      if (e.target.files.length) handleFile(e.target.files[0]);
+    });
+
+    // ── Handle Selected File ───────────────────────────────────────────────
+    function handleFile(f) {
+      if (!f) return;
+      const isImage = f.type.startsWith('image/');
+      const isPdf = f.type === 'application/pdf';
+      if (!isImage && !isPdf) {
+        showError('Unsupported file type. Please upload a PNG, JPG, WEBP, or PDF.');
+        return;
+      }
+      hideError();
+      
+      // Clean up previous blob URL
+      if (state.blobUrl) {
+        URL.revokeObjectURL(state.blobUrl);
+      }
+
+      state.file = f;
+      state.fileType = isImage ? 'image' : 'pdf';
+      state.mime = f.type;
+      
+      // Render layout shift
+      uploadHero.style.display = 'none';
+      editorLayout.style.display = 'grid';
+      
+      // Show loading file
+      previewContainer.innerHTML = `<div class="spinner-ring"></div><div style="margin-top: 1rem; color: var(--text-muted);">Loading file preview...</div>`;
+      
+      const reader = new FileReader();
+      reader.onload = e => {
+        const result = e.target.result;
+        state.b64 = result.split(',')[1];
+        
+        // Generate blob URL for side-by-side preview panel
+        const byteCharacters = atob(state.b64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: state.mime });
+        state.blobUrl = URL.createObjectURL(blob);
+        
+        // Render preview inside Left Panel
+        if (state.fileType === 'image') {
+          previewContainer.innerHTML = `<img src="${state.blobUrl}" alt="Source Document" class="preview-img">`;
+        } else {
+          // Native browser PDF viewer inside iframe
+          previewContainer.innerHTML = `<iframe src="${state.blobUrl}#toolbar=0" class="preview-pdf"></iframe>`;
+        }
+      };
+      reader.readAsDataURL(f);
+      
+      // Reset extraction pane
+      configPane.style.display = 'block';
+      loadingPane.style.display = 'none';
+      resultsPane.style.display = 'none';
+      metadataBadge.style.display = 'none';
+      state.tables = null;
+      state.activeTab = 0;
+    }
+
+    changeFileBtn.addEventListener('click', () => {
+      fileInput.value = '';
+      uploadHero.style.display = 'flex';
+      editorLayout.style.display = 'none';
+      hideError();
+      if (state.blobUrl) {
+        URL.revokeObjectURL(state.blobUrl);
+        state.blobUrl = null;
+      }
+      state.file = null;
+      state.b64 = null;
+      state.tables = null;
+    });
+
+    // ── Table Extraction (OCR Prompt Engine) ────────────────────────────────
+    startExtractBtn.addEventListener('click', async () => {
+      const provider = providerSelect.value;
+      const model = modelSelect.value;
+      
+      // Fetch key
+      const keyName = provider === 'gemini' ? 'te_gemini_key' : 'te_anthropic_key';
+      const apiKey = localStorage.getItem(keyName);
+      
+      if (!apiKey) {
+        showError(`Missing API key for ${provider === 'gemini' ? 'Google Gemini' : 'Anthropic Claude'}. Please configure it by clicking the gear icon at the top right.`);
+        openSettingsBtn.click();
+        return;
+      }
+
+      configPane.style.display = 'none';
+      loadingPane.style.display = 'flex';
+      loadingSteps.innerHTML = '';
+      hideError();
+
+      try {
+        addLoadingStep('Reading local document data...', 'success');
+        addLoadingStep('Connecting to AI Vision Provider...', 'active');
+        
+        const systemPrompt = `You are an expert document parser specializing in high-accuracy table extraction.
+Your task is to extract all tabular data from the provided document image or PDF and return it in a structured JSON format.
+
+Document Language: Arabic / Multilingual
+Layout Style: Pay close attention to the layout. The document might have a multi-column layout where a single logical table is divided into multiple physical blocks side-by-side on the page (e.g. index 1-139 on the right, 140-278 in the middle, 279-417 on the left).
+
+CRITICAL RULES:
+1. Reconstruct a SINGLE logical table if the page contains split columns. Merge side-by-side blocks into a single flat table.
+2. Order the final rows by their logical sequence (typically guided by the Index/No. column).
+3. If a column is cut off or missing in a block (e.g., the leftmost column is cut off in a block), output empty strings "" for those cells. Align the remaining cells with their correct columns.
+4. Preserve numbers, text, spelling, and punctuation exactly. Do not translate.
+5. Identify the columns accurately. For Arabic tables, columns read from right to left (RTL).
+6. Return ONLY a valid JSON array matching the schema, with no markdown code fences, no prefix, and no suffix.
+
+Schema Format:
+[
+  {
+    "title": "Document Title or Table Title",
+    "headers": ["Index", "Plate Number", "Source", "Category", "Vehicle Type", "Vehicle Color"],
+    "rows": [
+      ["140", "62290", "الشارقة", "4", "هونداي سوناتا", "ابيض"],
+      ["279", "38687", "أبوظبي", "6", "التيما", ""]
+    ]
+  }
+]`;
+
+        let resultJSON = '';
+
+        if (provider === 'gemini') {
+          // ── Google Gemini API Call ──
+          const modelUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          
+          const requestBody = {
+            contents: [
+              {
+                parts: [
+                  { text: systemPrompt },
+                  {
+                    inlineData: {
+                      mimeType: state.mime,
+                      data: state.b64
+                    }
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              responseMimeType: "application/json"
+            }
+          };
+
+          const response = await fetch(modelUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+          });
+
+          updateLastStepSuccess();
+          addLoadingStep('Processing layout and performing OCR...', 'active');
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error?.message || `HTTP ${response.status}`);
+          }
+          
+          resultJSON = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          
+        } else {
+          // ── Anthropic Claude API Call ──
+          const content = [];
+          if (state.fileType === 'image') {
+            content.push({
+              type: 'image',
+              source: { type: 'base64', media_type: state.mime, data: state.b64 }
+            });
+          } else {
+            content.push({
+              type: 'document',
+              source: { type: 'base64', media_type: 'application/pdf', data: state.b64 }
+            });
+          }
+
+          content.push({
+            type: 'text',
+            text: systemPrompt
+          });
+
+          const headers = {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-requests': 'true'
+          };
+
+          // If PDF, append the beta header
+          if (state.fileType === 'pdf') {
+            headers['anthropic-beta'] = 'pdf-2024-10-18';
+          }
+
+          const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+              model: model,
+              max_tokens: 8000,
+              messages: [{ role: 'user', content }]
+            })
+          });
+
+          updateLastStepSuccess();
+          addLoadingStep('Processing layout and performing OCR...', 'active');
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error?.message || `HTTP ${response.status}`);
+          }
+
+          resultJSON = data.content?.find(b => b.type === 'text')?.text || '';
+        }
+
+        updateLastStepSuccess();
+        addLoadingStep('Parsing structured JSON data...', 'active');
+
+        // Parse extracted output
+        const cleanJSON = resultJSON.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+        const parsed = JSON.parse(cleanJSON);
+        const arr = Array.isArray(parsed) ? parsed : [parsed];
+
+        updateLastStepSuccess();
+        addLoadingStep('Building interactive dashboard...', 'success');
+
+        state.tables = arr;
+        state.activeTab = 0;
+        
+        // Hide loader & show table
+        setTimeout(() => {
+          loadingPane.style.display = 'none';
+          resultsPane.style.display = 'flex';
+          metadataBadge.style.display = 'inline-flex';
+          
+          // Show Merge button if more than 1 sheet is extracted
+          if (state.tables.length > 1) {
+            mergeTablesBtn.style.display = 'inline-flex';
+          } else {
+            mergeTablesBtn.style.display = 'none';
+          }
+
+          renderGrid();
+        }, 600);
+
+      } catch (err) {
+        console.error(err);
+        loadingPane.style.display = 'none';
+        configPane.style.display = 'block';
+        showError(`Extraction failed: ${err.message}`);
+      }
+    });
+
+    // Loading Step Helpers
+    function addLoadingStep(text, status = '') {
+      const div = document.createElement('div');
+      div.className = `loading-step-item ${status}`;
+      
+      let icon = '';
+      if (status === 'success') icon = '<i class="ti ti-circle-check"></i>';
+      else if (status === 'active') icon = '<i class="ti ti-loader animate-spin"></i>';
+      else icon = '<i class="ti ti-circle"></i>';
+      
+      div.innerHTML = `${icon}<span>${text}</span>`;
+      loadingSteps.appendChild(div);
+      loadingStatus.textContent = text;
+    }
+
+    function updateLastStepSuccess() {
+      const items = loadingSteps.querySelectorAll('.loading-step-item');
+      if (items.length) {
+        const last = items[items.length - 1];
+        last.className = 'loading-step-item success';
+        last.querySelector('i').className = 'ti ti-circle-check';
+      }
+    }
+
+    // ── Render Interactive Grid ───────────────────────────────────────────
+    function renderGrid() {
+      if (!state.tables || !state.tables.length) return;
+      const curTable = state.tables[state.activeTab];
+      
+      // Render tabs
+      tabsBar.innerHTML = '';
+      state.tables.forEach((t, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `tab ${idx === state.activeTab ? 'active' : ''}`;
+        btn.innerHTML = `<i class="ti ti-sheet"></i> ${t.title || `Sheet ${idx + 1}`}`;
+        btn.addEventListener('click', () => {
+          state.activeTab = idx;
+          renderGrid();
+        });
+        tabsBar.appendChild(btn);
+      });
+
+      // Update badge
+      metadataBadge.textContent = `${curTable.rows.length} rows · ${curTable.headers.length} columns`;
+
+      // Build table DOM
+      dataGrid.innerHTML = '';
+      
+      // 1. Headers
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      
+      // Empty action header
+      const actionTh = document.createElement('th');
+      actionTh.className = 'row-action-cell';
+      actionTh.innerHTML = `<i class="ti ti-trash" style="opacity: 0.5;"></i>`;
+      headerRow.appendChild(actionTh);
+
+      curTable.headers.forEach((header, colIdx) => {
+        const th = document.createElement('th');
+        th.innerHTML = `
+          <div class="th-container">
+            <span contenteditable="true" class="hdr-text" data-col="${colIdx}">${esc(header)}</span>
+            <button class="del-col-btn" data-col="${colIdx}" title="Delete column"><i class="ti ti-trash"></i></button>
+          </div>
+        `;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      dataGrid.appendChild(thead);
+
+      // 2. Rows
+      const tbody = document.createElement('tbody');
+      
+      curTable.rows.forEach((row, rowIdx) => {
+        const tr = document.createElement('tr');
+        
+        // Trash cell for deleting row
+        const actionTd = document.createElement('td');
+        actionTd.className = 'row-action-cell';
+        actionTd.innerHTML = `
+          <button class="del-row-btn" data-row="${rowIdx}" title="Delete Row">
+            <i class="ti ti-trash-x"></i>
+          </button>
+        `;
+        tr.appendChild(actionTd);
+
+        row.forEach((cell, colIdx) => {
+          const td = document.createElement('td');
+          td.contentEditable = true;
+          td.dataset.row = rowIdx;
+          td.dataset.col = colIdx;
+          
+          if (!cell && cell !== 0) {
+            td.className = 'empty-cell';
+            td.textContent = '';
+          } else {
+            td.textContent = cell;
+          }
+          
+          // Auto Arabic text-align alignment check
+          if (isArabicText(String(cell))) {
+            td.style.textAlign = 'right';
+            td.style.direction = 'rtl';
+          } else {
+            td.style.textAlign = 'left';
+            td.style.direction = 'ltr';
+          }
+
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      dataGrid.appendChild(tbody);
+
+      // Bind Grid Action Listeners
+      bindGridListeners();
+    }
+
+    // Grid Edit & Action Handlers
+    function bindGridListeners() {
+      const curTable = state.tables[state.activeTab];
+      
+      // Cell edit saving
+      dataGrid.querySelectorAll('tbody td[contenteditable="true"]').forEach(td => {
+        td.addEventListener('blur', e => {
+          const r = parseInt(e.target.dataset.row);
+          const c = parseInt(e.target.dataset.col);
+          const val = e.target.textContent.trim();
+          
+          if (val === '') {
+            e.target.classList.add('empty-cell');
+          } else {
+            e.target.classList.remove('empty-cell');
+          }
+
+          curTable.rows[r][c] = val;
+        });
+
+        // Cell focus handler to clean empty state
+        td.addEventListener('focus', e => {
+          if (e.target.classList.contains('empty-cell')) {
+            e.target.classList.remove('empty-cell');
+          }
+        });
+      });
+
+      // Header edit saving
+      dataGrid.querySelectorAll('thead .hdr-text').forEach(span => {
+        span.addEventListener('blur', e => {
+          const colIdx = parseInt(e.target.dataset.col);
+          const val = e.target.textContent.trim() || `Column ${colIdx + 1}`;
+          curTable.headers[colIdx] = val;
+          e.target.textContent = val; // Force clean
+        });
+        
+        span.addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            span.blur();
+          }
+        });
+      });
+
+      // Keyboard arrow navigation
+      dataGrid.addEventListener('keydown', e => {
+        const td = e.target.closest('td[contenteditable="true"]');
+        if (!td) return;
+
+        const r = parseInt(td.dataset.row);
+        const c = parseInt(td.dataset.col);
+
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          td.blur();
+          // Move cursor down to the row below
+          const next = dataGrid.querySelector(`tbody td[data-row="${r + 1}"][data-col="${c}"]`);
+          if (next) {
+            next.focus();
+            selectText(next);
+          }
+        }
+      });
+
+      // Row deletion
+      dataGrid.querySelectorAll('.del-row-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          const rowIdx = parseInt(e.currentTarget.dataset.row);
+          curTable.rows.splice(rowIdx, 1);
+          renderGrid();
+        });
+      });
+
+      // Column deletion
+      dataGrid.querySelectorAll('.del-col-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          const colIdx = parseInt(e.currentTarget.dataset.col);
+          curTable.headers.splice(colIdx, 1);
+          curTable.rows.forEach(r => r.splice(colIdx, 1));
+          renderGrid();
+        });
+      });
+    }
+
+    // Grid Utility Functions
+    function selectText(el) {
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    function isArabicText(text) {
+      const arabicPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+      return arabicPattern.test(text);
+    }
+
+    // ── Table Editing Controls ──
+    addRowBtn.addEventListener('click', () => {
+      if (!state.tables || !state.tables.length) return;
+      const curTable = state.tables[state.activeTab];
+      const emptyRow = new Array(curTable.headers.length).fill('');
+      curTable.rows.push(emptyRow);
+      renderGrid();
+      
+      // Auto focus the newly added row
+      setTimeout(() => {
+        const lastRowFirstCell = dataGrid.querySelector(`tbody tr:last-child td[data-col="0"]`);
+        if (lastRowFirstCell) {
+          lastRowFirstCell.focus();
+        }
+      }, 50);
+    });
+
+    addColBtn.addEventListener('click', () => {
+      if (!state.tables || !state.tables.length) return;
+      const curTable = state.tables[state.activeTab];
+      const newColName = `Column ${curTable.headers.length + 1}`;
+      curTable.headers.push(newColName);
+      curTable.rows.forEach(r => r.push(''));
+      renderGrid();
+    });
+
+    // ── Search Table ──
+    searchGrid.addEventListener('input', e => {
+      const filter = e.target.value.toLowerCase().trim();
+      const rows = dataGrid.querySelectorAll('tbody tr');
+      
+      rows.forEach(row => {
+        let textFound = false;
+        row.querySelectorAll('td').forEach((td, idx) => {
+          if (idx === 0) return; // Skip trash action column
+          if (td.textContent.toLowerCase().includes(filter)) {
+            textFound = true;
+          }
+        });
+        row.style.display = textFound || !filter ? '' : 'none';
+      });
+    });
+
+    // ── Merge Table Sheets (Smart RTL Layout Reconstructor) ──
+    mergeTablesBtn.addEventListener('click', () => {
+      if (!state.tables || state.tables.length <= 1) return;
+
+      // Extract all unique headers across all tables
+      const allHeaders = [];
+      state.tables.forEach(t => {
+        t.headers.forEach(h => {
+          if (!allHeaders.includes(h)) allHeaders.push(h);
+        });
+      });
+
+      // Align rows from all sheets into a flat merged array
+      const mergedRows = [];
+      state.tables.forEach(t => {
+        const colIndices = t.headers.map(h => allHeaders.indexOf(h));
+        t.rows.forEach(r => {
+          const newRow = new Array(allHeaders.length).fill('');
+          r.forEach((cell, idx) => {
+            const targetIdx = colIndices[idx];
+            if (targetIdx !== -1) {
+              newRow[targetIdx] = cell;
+            }
+          });
+          mergedRows.push(newRow);
+        });
+      });
+
+      // Try sorting rows by index/numerical sequence (first column with numbers)
+      let sortColIdx = -1;
+      for (let c = 0; c < allHeaders.length; c++) {
+        let numericCount = 0;
+        mergedRows.forEach(r => {
+          const val = parseInt(r[c]);
+          if (r[c] !== '' && !isNaN(val)) numericCount++;
+        });
+        
+        // If > 70% of rows contain numbers in this column, sort by it
+        if (numericCount > mergedRows.length * 0.7) {
+          sortColIdx = c;
+          break;
+        }
+      }
+
+      if (sortColIdx !== -1) {
+        mergedRows.sort((a, b) => {
+          const valA = parseInt(a[sortColIdx]) || 0;
+          const valB = parseInt(b[sortColIdx]) || 0;
+          return valA - valB;
+        });
+      }
+
+      // Replace state sheets list with a single merged spreadsheet
+      state.tables = [{
+        title: 'Merged Output',
+        headers: allHeaders,
+        rows: mergedRows
+      }];
+      state.activeTab = 0;
+      mergeTablesBtn.style.display = 'none'; // Merged
+      renderGrid();
+    });
+
+    // ── Excel Export (SheetJS) ─────────────────────────────────────────────
+    downloadExcelBtn.addEventListener('click', () => {
+      if (!state.tables || !state.tables.length) return;
+      
+      const wb = XLSX.utils.book_new();
+      
+      state.tables.forEach((t, i) => {
+        // Prepend headers to rows array
+        const fullData = [t.headers, ...t.rows];
+        const ws = XLSX.utils.aoa_to_sheet(fullData);
+        
+        // Auto column width configuration
+        const maxLens = t.headers.map((h, col) =>
+          Math.max((h || '').length, ...t.rows.map(r => String(r[col] || '').length))
+        );
+        ws['!cols'] = maxLens.map(len => ({ wch: Math.min(Math.max(len + 3, 10), 45) }));
+        
+        // Build valid sheet name (strip illegal chars like : \ / ? [ ] *)
+        let sheetName = (t.title || `Table ${i + 1}`).replace(/[:\\/?\[\]*]/g, '').slice(0, 30);
+        sheetName = sheetName.trim() || `Sheet${i + 1}`;
+        
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      });
+      
+      // Determine file output name
+      let filename = 'extracted_tables.xlsx';
+      if (state.file) {
+        const parts = state.file.name.split('.');
+        parts.pop(); // Remove extension
+        filename = `${parts.join('.')}_extracted.xlsx`;
+      }
+      
+      XLSX.writeFile(wb, filename);
+    });
+
+    // ── Initial Setup & Keys Verification ──────────────────────────────────
+    // Pre-configure Gemini API key if not already set
+    (function() {
+      const PRESET_GEMINI_KEY = 'AQ.Ab8RN6JdHYe6-ChaaNzDZjnJ8y_petci3D95BwlIIPUdFJfV9w';
+      if (!localStorage.getItem('te_gemini_key')) {
+        localStorage.setItem('te_gemini_key', PRESET_GEMINI_KEY);
+      }
+    })();
+
+    updateModelDropdown();
+    loadApiKeys();
+    initTheme();
+
+    // ── Helpers ────────────────────────────────────────────────────────────
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorBar.style.display = 'flex';
+      errorBar.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function hideError() {
+      errorBar.style.display = 'none';
+    }
+    
+    function esc(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>
